@@ -1,215 +1,351 @@
-# Guidance Title (required)
+# Live Chat Content Moderation with generative AI on AWS
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Running the Application](#running-the-application)
+  - [Switching Prompts/Models](#switching-promptsmodels)
+  - [Updating the Front-End](#updating-the-front-end)
+  - [Moderation Guidelines](#moderation-guidelines)
+- [Development](#development)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Monitoring and Observability](#monitoring-and-observability)
+- [Performance and Scalability](#performance-and-scalability)
+- [Security Considerations](#security-considerations)
+- [Contributing](#contributing)
+- [License](#license)
+- [Support](#support)
+
+## Overview
+
+The **Live Chat Content Moderation with generative AI on AWS** project is a scalable, multilingual, real-time chat moderation system designed for live chat platforms. It leverages AWS services and generative AI to automatically filter and moderate chat messages, ensuring a safe and engaging environment for users.
+
+## Architecture
+
+This solution utilizes several AWS services to create a robust and scalable architecture:
+
+- **Amazon API Gateway**: Handles incoming WebSocket connections and REST API requests;
+- **AWS Lambda**: Processes messages and interacts with other services;
+- **Amazon DynamoDB**: Stores chat messages, approved messages, and moderation prompts;
+- **Amazon SQS**: Manages message queues for reliable processing;
+- **AWS AppSync**: Facilitates real-time updates using GraphQL subscriptions;
+- **Amazon Bedrock**: Provides generative AI capabilities for message moderation;
+- **Amazon CloudFront & S3**: Hosts and serves the front-end application;
+- **AWS WAF**: Protects your web applications from common exploits;
+- **AWS CDK**: Defines and deploys the infrastructure as code.
 
-The Guidance title should be consistent with the title established first in Alchemy.
+### System Architecture Diagram
 
-**Example:** *Guidance for Product Substitutions on AWS*
+![System Architecture Diagram](live-chat-moderation-gen-ai-architecture-diagram.png)
 
-This title correlates exactly to the Guidance it’s linked to, including its corresponding sample code repository. 
+## Features
 
+- Real-time chat moderation using generative AI;
+- Scalable WebSocket connections for live chat;
+- Multiple AI model support with easy switching;
+- Front-end React application for chat interface;
+- Comprehensive observability and monitoring;
+- Secure and compliant with AWS best practices.
 
-## Table of Contents (required)
+### Cost
 
-List the top-level sections of the README template, along with a hyperlink to the specific section.
+The solution utilizes several AWS services, each contributing to the overall cost. Key services include:
 
-### Required
+1. Amazon API Gateway: Charges based on the number of API calls and data transfer;
+2. AWS Lambda: Costs depend on the number of requests, duration, and memory allocated;
+3. Amazon DynamoDB: Pricing based on read/write capacity units or on-demand pricing;
+4. Amazon SQS: Charges per million requests;
+5. AWS AppSync: Costs based on the number of API requests and real-time updates;
+6. Amazon Bedrock: Pricing varies by model and is based on the number of input and output tokens;
+7. Amazon CloudFront: Charges for data transfer and number of requests;
+8. AWS WAF: Charges on the number of web ACLs, number of rules per web ACL, and number of web requests;
+9. Amazon CloudWatch: Costs for log ingestion, storage, and dashboard usage;
+10. AWS Systems Manager Parameter Store: Standard parameters are free, advanced parameters have a nominal cost.
 
-1. [Overview](#overview-required)
-    - [Cost](#cost)
-2. [Prerequisites](#prerequisites-required)
-    - [Operating System](#operating-system-required)
-3. [Deployment Steps](#deployment-steps-required)
-4. [Deployment Validation](#deployment-validation-required)
-5. [Running the Guidance](#running-the-guidance-required)
-6. [Next Steps](#next-steps-required)
-7. [Cleanup](#cleanup-required)
+Here is an example of a monthly cost estimate based on 1,000 users, 1,000,000 messages sent and 200,000,000 token usage based on N. Virginia (us-east-1):
 
-***Optional***
+| AWS service                        | Dimensions                                                                     | Cost [USD] |
+| ---------------------------------- | ------------------------------------------------------------------------------ | ---------- |
+| Amazon CloudFront                  | 1,000 users requesting 64 MBs of Static Assets                                 | $7.84      |
+| AWS WAF                            | 2 Web ACLs + 2 Rules + 1,000,000 of requests                                   | $13.20     |
+| Amazon Simple Storage Service (S3) | 16 MBs of Static Assets                                                        | $4.03      |
+| Amazon API Gateway                 | 1,000,000 REST API Requests                                                    | $3.50      |
+| Amazon Simple Queue Service (SQS)  | 1,000,000 Messages                                                             | $0.01      |
+| AWS Lambda                         | 1,000,000 of Lambda Executions with 256 MBs of RAM and 2000ms average duration | $8.53      |
+| AWS AppSync                        | 1,000,000 of API requests and 1,000 of connected clients with 1 hour duration  | $10.29     |
+| Amazon Bedrock                     | 200,000,000 of input + output tokens                                           | $30.20     |
+| Amazon Bedrock Guardrails          | 5,000 text units (1,000,000 messages with 200 characters average)              | $3.75      |
+| AWS Systems Manager                | 1 SSM Query per minute                                                         | $0.01      |
+| Amazon DynamoDB                    | Reads from Prompt Store and 1,000,000 Writes to Messages Tables                | $2.27      |
+| Amazon CloudWatch                  | 34 Metrics, 1 Dashboard, 1 GB of Logs                                          | $11.21     |
+| AWS X-Ray                          | 20% sample of 1,000,000 messages                                               | $1.20      |
 
-8. [FAQ, known issues, additional considerations, and limitations](#faq-known-issues-additional-considerations-and-limitations-optional)
-9. [Revisions](#revisions-optional)
-10. [Notices](#notices-optional)
-11. [Authors](#authors-optional)
+For a more accurate cost estimate, use the AWS Pricing Calculator and input your expected usage patterns.
 
-## Overview (required)
+### Supported AI Models
 
-1. Provide a brief overview explaining the what, why, or how of your Guidance. You can answer any one of the following to help you write this:
+The system supports three different AI models for chat moderation:
 
-    - **Why did you build this Guidance?**
-    - **What problem does this Guidance solve?**
+1. **Anthropic Claude Haiku**: Claude 3 Haiku is Anthropic's fastest, most compact model for near-instant responsiveness. It answers simple queries and requests with speed. Customers will be able to build seamless AI experiences that mimic human interactions. Claude 3 Haiku can process images and return text outputs, and features a 200K context window.
 
-2. Include the architecture diagram image, as well as the steps explaining the high-level overview and flow of the architecture. 
-    - To add a screenshot, create an ‘assets/images’ folder in your repository and upload your screenshot to it. Then, using the relative file path, add it to your README. 
+2. **Amazon Titan**: Amazon Titan Text Premier is an advanced, high-performance, and cost-effective LLM engineered to deliver superior performance for enterprise-grade text generation applications, including optimized performance for retrieval-augmented generation (RAG) and Agents.
 
-### Cost ( required )
+3. **Meta Llama**: Meta Llama 3 is an accessible, open large language model (LLM) designed for developers, researchers, and businesses to build, experiment, and responsibly scale their generative AI ideas. Part of a foundational system, it serves as a bedrock for innovation in the global community. Ideal for limited computational power and resources, edge devices, and faster training times.
 
-This section is for a high-level cost estimate. Think of a likely straightforward scenario with reasonable assumptions based on the problem the Guidance is trying to solve. Provide an in-depth cost breakdown table in this section below ( you should use AWS Pricing Calculator to generate cost breakdown ).
+Each model has its own strengths and characteristics. You can switch between these models using the `prompt-switch.bash` script.
 
-Start this section with the following boilerplate text:
+## Prerequisites
 
-_You are responsible for the cost of the AWS services used while running this Guidance. As of <month> <year>, the cost for running this Guidance with the default settings in the <Default AWS Region (Most likely will be US East (N. Virginia)) > is approximately $<n.nn> per month for processing ( <nnnnn> records )._
+- AWS Account;
+- AWS CLI configured with your credentials with permissions configured;
+- [Node.js installed (version 20.x or later) in your system](https://nodejs.org/en/download/package-manager);
+- Appropriate permissions to install npm packages in your system;
+- [Git installed in your system](https://git-scm.com/downloads);
+- [jq installed in your system](https://jqlang.github.io/jq/download/).
 
-Replace this amount with the approximate cost for running your Guidance in the default Region. This estimate should be per month and for processing/serving resonable number of requests/entities.
+## Deployment
 
-Suggest you keep this boilerplate text:
-_We recommend creating a [Budget](https://docs.aws.amazon.com/cost-management/latest/userguide/budgets-managing-costs.html) through [AWS Cost Explorer](https://aws.amazon.com/aws-cost-management/aws-cost-explorer/) to help manage costs. Prices are subject to change. For full details, refer to the pricing webpage for each AWS service used in this Guidance._
+1. Clone the repository:
 
-### Sample Cost Table ( required )
+   ```
+   git clone https://github.com/aws-samples/live-chat-content-moderation-with-genai-on-aws.git
+   ```
 
-**Note : Once you have created a sample cost table using AWS Pricing Calculator, copy the cost breakdown to below table and upload a PDF of the cost estimation on BuilderSpace. Do not add the link to the pricing calculator in the ReadMe.**
+2. Navigate to the project directory:
 
-The following table provides a sample cost breakdown for deploying this Guidance with the default parameters in the US East (N. Virginia) Region for one month.
+   ```
+   cd live-chat-content-moderation-with-genai-on-aws/scripts
+   ```
 
-| AWS service  | Dimensions | Cost [USD] |
-| ----------- | ------------ | ------------ |
-| Amazon API Gateway | 1,000,000 REST API calls per month  | $ 3.50month |
-| Amazon Cognito | 1,000 active users per month without advanced security feature | $ 0.00 |
+3. Run the installation script:
+   ```
+   ./install.bash
+   ```
 
-## Prerequisites (required)
+This script will set up the necessary AWS resources, deploy the back-end infrastructure, and prepare the front-end application.
 
-### Operating System (required)
+## Deployment Validation
 
-- Talk about the base Operating System (OS) and environment that can be used to run or deploy this Guidance, such as *Mac, Linux, or Windows*. Include all installable packages or modules required for the deployment. 
-- By default, assume Amazon Linux 2/Amazon Linux 2023 AMI as the base environment. All packages that are not available by default in AMI must be listed out.  Include the specific version number of the package or module.
+After running the installation script (`./install.bash`), follow these steps to validate the successful deployment of your Live Chat Moderation system:
 
-**Example:**
-“These deployment instructions are optimized to best work on **<Amazon Linux 2 AMI>**.  Deployment in another OS may require additional steps.”
+1. Open the AWS CloudFormation console and verify the status of the stack named "ChatModeration". It should be in the "CREATE_COMPLETE" state.
 
-- Include install commands for packages, if applicable.
+2. Check the outputs of the CloudFormation stack for the following key resources:
 
+   - REST API Endpoint
+   - GraphQL API Endpoint
+   - CloudFront Distribution Domain
 
-### Third-party tools (If applicable)
+3. Verify the creation of DynamoDB tables:
 
-*List any installable third-party tools required for deployment.*
+   ```
+   aws dynamodb list-tables --query "TableNames[?contains(@, 'ChatModeration')]"
+   ```
 
+You should see four tables: ApprovedMessagesTable, UnapprovedMessagesTable, HallucinationsTable, and PromptStoreTable.
 
-### AWS account requirements (If applicable)
+4. Confirm the Lambda function deployment:
 
-*List out pre-requisites required on the AWS account if applicable, this includes enabling AWS regions, requiring ACM certificate.*
+   ```
+   aws lambda get-function --function-name ChatModeration-MessageProcessorFunction
+   ```
 
-**Example:** “This deployment requires you have public ACM certificate available in your AWS account”
+This should return details about the deployed function.
 
-**Example resources:**
-- ACM certificate 
-- DNS record
-- S3 bucket
-- VPC
-- IAM role with specific permissions
-- Enabling a Region or service etc.
+5. Verify the SQS queues:
 
+   ```
+   aws sqs list-queues --queue-name-prefix ChatModeration
+   ```
 
-### aws cdk bootstrap (if sample code has aws-cdk)
+You should see two queues: MessageQueue.fifo and DeadLetterQueue.fifo.
 
-<If using aws-cdk, include steps for account bootstrap for new cdk users.>
+6. Check the AppSync API:
 
-**Example blurb:** “This Guidance uses aws-cdk. If you are using aws-cdk for first time, please perform the below bootstrapping....”
+   ```
+   aws appsync list-graphql-apis --query "graphqlApis[?name=='ChatModeration-GraphQLApi']"
+   ```
 
-### Service limits  (if applicable)
+This should return details about your GraphQL API.
 
-<Talk about any critical service limits that affect the regular functioning of the Guidance. If the Guidance requires service limit increase, include the service name, limit name and link to the service quotas page.>
+7. Verify the CloudFront distribution:
 
-### Supported Regions (if applicable)
+   ```
+   aws cloudfront list-distributions --query "DistributionList.Items"
+   ```
 
-<If the Guidance is built for specific AWS Regions, or if the services used in the Guidance do not support all Regions, please specify the Region this Guidance is best suited for>
+You should see details of your CloudFront distribution.
 
+If all these resources are present and correctly configured, your deployment has been successful.
 
-## Deployment Steps (required)
+## Usage
 
-Deployment steps must be numbered, comprehensive, and usable to customers at any level of AWS expertise. The steps must include the precise commands to run, and describe the action it performs.
+## Running the Solution
 
-* All steps must be numbered.
-* If the step requires manual actions from the AWS console, include a screenshot if possible.
-* The steps must start with the following command to clone the repo. ```git clone xxxxxxx```
-* If applicable, provide instructions to create the Python virtual environment, and installing the packages using ```requirement.txt```.
-* If applicable, provide instructions to capture the deployed resource ARN or ID using the CLI command (recommended), or console action.
+After installation, the application should be accessible via the CloudFront URL provided in the output. To test and use the Live Chat Moderation system:
 
- 
-**Example:**
+1. Open a web browser and navigate to the CloudFront Distribution Domain provided in `./install.bash` output or the CloudFormation stack outputs.
 
-1. Clone the repo using command ```git clone xxxxxxxxxx```
-2. cd to the repo folder ```cd <repo-name>```
-3. Install packages in requirements using command ```pip install requirement.txt```
-4. Edit content of **file-name** and replace **s3-bucket** with the bucket name in your account.
-5. Run this command to deploy the stack ```cdk deploy``` 
-6. Capture the domain name created by running this CLI command ```aws apigateway ............```
+2. You should see the chat interface. Try sending various types of messages:
 
+- A normal, non-offensive message: "Hello, how is everyone doing today?"
+- A message containing mild profanity: "This stream is damn good!"
+- A message with hate speech or discrimination: "I hate people from [specific country]"
 
+3. Observe the behavior:
 
-## Deployment Validation  (required)
+- Normal messages should appear in the chat;
+- Mildly offensive messages may or may not be blocked, depending on the AI model's judgment;
+- Hate speech or discriminatory messages should be blocked, and you should receive a notification.
 
-<Provide steps to validate a successful deployment, such as terminal output, verifying that the resource is created, status of the CloudFormation template, etc.>
+4. To test the real-time nature of the chat, open the application in two different browser windows and send messages from both. You should see messages appear in real-time on both screens.
 
+5. To verify the multilingual support, try sending messages in different languages.
 
-**Examples:**
+Expected Output:
 
-* Open CloudFormation console and verify the status of the template with the name starting with xxxxxx.
-* If deployment is successful, you should see an active database instance with the name starting with <xxxxx> in        the RDS console.
-*  Run the following CLI command to validate the deployment: ```aws cloudformation describe xxxxxxxxxxxxx```
+- Approved messages appear in the chat interface;
+- Blocked messages trigger a notification to the user;
+- The chat updates in real-time across multiple browser windows.
 
+### Switching Prompts/Models
 
+To switch between different AI models or prompts:
 
-## Running the Guidance (required)
+```
+./prompt-switch.bash <model-name>
+```
 
-<Provide instructions to run the Guidance with the sample data or input provided, and interpret the output received.> 
+Replace `<model-name>` with one of the available options: `titan`, `haiku`, or `llama`. The aforementioned `./install.bash` script configures Anthropic Claude Haiku to be used by default.
 
-This section should include:
+### Updating the Front-End
 
-* Guidance inputs
-* Commands to run
-* Expected output (provide screenshot if possible)
-* Output description
+After making changes to the front-end code, deploy updates using:
 
+```
+./publish.bash
+```
 
+This script will build the React application and update the S3 bucket and CloudFront distribution. This is not required at the first deployment.
 
-## Next Steps (required)
+### Moderation Guidelines
 
-Provide suggestions and recommendations about how customers can modify the parameters and the components of the Guidance to further enhance it according to their requirements.
+The AI models use the following prompt as the main guideline for moderating chat messages:
 
+```
+Instructions:
+You are a moderation bot tasked with identifying and preventing the spread of harmful, aggressive, racist, or toxic messages in a live stream chat. Analyze the context and intent of the message, not just specific words. Respond only with y for safe messages or n for harmful messages. Do not provide any explanation.
+Consider these guidelines when evaluating:
+1. Hate speech or discrimination
+2. Explicit threats of violence
+3. Severe profanity
+4. Bullying or harassment
+5. Spam or excessive self-promotion
+6. Selling or advertising products
+7. Sharing personal information
+8. Encouraging self-harm or illegal activities
+If a message is ambiguous, err on the side of caution and allow it.
+Your entire response MUST be either y or n, nothing else.
+```
 
-## Cleanup (required)
+This prompt instructs the AI to evaluate messages based on various criteria and respond with a simple 'y' for safe messages or 'n' for harmful ones.
 
-- Include detailed instructions, commands, and console actions to delete the deployed Guidance.
-- If the Guidance requires manual deletion of resources, such as the content of an S3 bucket, please specify.
+## Monitoring and Observability
 
+The project includes a CloudWatch dashboard for monitoring key metrics:
 
+- Bedrock model invocations and latency;
+- SQS queue metrics;
+- Lambda function metrics;
+- API Gateway request counts.
 
-## FAQ, known issues, additional considerations, and limitations (optional)
+Access the dashboard named "ChatModeration-Monitoring" in the Amazon CloudWatch console.
+You can also add a service trace map to the CloudWatch dashboard by doing the following steps:
 
+1. Access the X-Ray Trace Map in CloudWatch:
+   a. Open the CloudWatch console.
+   b. In the left navigation pane, under the X-Ray Traces section, select Trace Map.
+2. Add the Service Map to the CloudWatch Dashboard:
+   a. Within the Trace Map view, click on the Actions menu.
+   b. Choose Add to dashboard.
+   c. Select the dashboard named "ChatModeration-Monitoring".
 
-**Known issues (optional)**
+## Performance and Scalability
 
-<If there are common known issues, or errors that can occur during the Guidance deployment, describe the issue and resolution steps here>
+The Live Chat Moderation with Generative AI system is built on AWS services, which provide high scalability and performance. However, it's important to be aware of AWS service quotas and limits that may affect the system's scalability:
 
+1. **API Gateway**: Limits on the number of WebSocket connections and API requests per second;
+2. **Lambda**: Concurrent execution limits and individual function timeout limits;
+3. **DynamoDB**: Read and write capacity units, which affect the rate of database operations;
+4. **SQS**: Message throughput and retention limits;
+5. **Bedrock**: API call rate limits and token limits for AI model invocations.
 
-**Additional considerations (if applicable)**
+To test the system's performance and identify potential bottlenecks, you can use Locust for load testing. The project includes a Locust configuration file located at `../tests/locust/locust.conf`. This file is automatically updated with the correct API endpoint when you run the `publish.bash` script.
 
-<Include considerations the customer must know while using the Guidance, such as anti-patterns, or billing considerations.>
+To use Locust:
 
-**Examples:**
+1. Install Locust:
 
-- “This Guidance creates a public AWS bucket required for the use-case.”
-- “This Guidance created an Amazon SageMaker notebook that is billed per hour irrespective of usage.”
-- “This Guidance creates unauthenticated public API endpoints.”
+   ```
+   pip install locust
+   ```
 
+2. Navigate to the Locust test directory:
 
-Provide a link to the *GitHub issues page* for users to provide feedback.
+   ```
+   cd ../tests/locust
+   ```
 
+3. Run Locust:
 
-**Example:** *“For any feedback, questions, or suggestions, please use the issues tab under this repo.”*
+   ```
+   locust
+   ```
 
-## Revisions (optional)
+4. Open a web browser and go to `http://localhost:8089` to access the Locust web interface.
 
-Document all notable changes to this project.
+5. Enter the number of users to simulate, spawn rate, and other test parameters.
 
-Consider formatting this section based on Keep a Changelog, and adhering to Semantic Versioning.
+6. Start the test and monitor the results to identify performance bottlenecks or scalability issues.
 
-## Notices (optional)
+Remember to monitor your AWS usage and adjust service limits if needed as your chat moderation system scales.
 
-Include a legal disclaimer
+## Security Considerations
 
-**Example:**
-*Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.*
+- DynamoDB tables use encryption at rest;
+- Lambda functions use least-privilege IAM roles;
+- S3 bucket for static assets is not publicly accessible;
+- CloudFront distribution uses HTTPS.
 
+## Cleanup
 
-## Authors (optional)
+To delete all resources associated with the Live Chat Moderation system:
 
-Name of code contributors
+1. Destroy the CDK stack:
+
+   ```
+   cdk destroy
+   ```
+
+## Next Steps
+
+To further enhance your Live Chat Moderation system:
+
+1. Customize AI Prompts: Modify the prompts in the `insert-prompt.bash <model-name>` scripts to fine-tune the moderation criteria for your specific use case.
+
+2. Implement User Authentication: Add user authentication to associate messages with verified user accounts.
+
+## Notices
+
+_Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers._
+
+## Authors
+
+- Gabriel Costa
+- Juliano Baeta
