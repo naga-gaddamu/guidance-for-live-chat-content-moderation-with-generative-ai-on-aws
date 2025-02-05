@@ -342,6 +342,8 @@ To further enhance your Live Chat Moderation system:
 
 2. Implement User Authentication: Add user authentication to associate messages with verified user accounts.
 
+3. You can improve DDoS attack protection of the solution by using AWS Shield Advanced to enable advanced protection up to the application layer (Layer 7 on OSI network model). Check reference blog https://aws.amazon.com/blogs/security/protect-apis-with-amazon-api-gateway-and-perimeter-protection-services/
+
 ## Notices
 
 _Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided “as is” without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers._
