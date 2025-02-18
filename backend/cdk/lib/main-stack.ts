@@ -27,6 +27,7 @@ export class MainStack extends cdk.Stack {
 
   public constructor(scope: cdk.App, id: string, props: MainStackProps = {}) {
     super(scope, id, props);
+    this.templateOptions.description = 'Live Chat Content Moderation with generative AI on AWS (SO9005)'
 
     // Database Nested Stack
     const database = new Database(this, "Database", {
