@@ -116,13 +116,13 @@ Each model has its own strengths and characteristics. You can switch between the
 1. Clone the repository:
 
    ```
-   git clone https://github.com/aws-samples/live-chat-content-moderation-with-genai-on-aws.git
+   git clone https://github.com/aws-solutions-library-samples/guidance-for-live-chat-content-moderation-with-generative-ai-on-aws.git
    ```
 
 2. Navigate to the project directory:
 
    ```
-   cd live-chat-content-moderation-with-genai-on-aws/scripts
+   cd guidance-for-live-chat-content-moderation-with-generative-ai-on-aws/scripts
    ```
 
 3. Run the installation script:
@@ -224,7 +224,7 @@ To switch between different AI models or prompts:
 ./prompt-switch.bash <model-name>
 ```
 
-Replace `<model-name>` with one of the available options: `titan`, `haiku`, `llama` or `nova-micro`. The aforementioned `./install.bash` script configures Anthropic Claude Haiku to be used by default.
+Replace `<model-name>` with one of the available options: `titan`, `haiku`, `haiku-3.5`, `llama` or `nova-micro`. The aforementioned `./install.bash` script configures Anthropic Claude Haiku to be used by default.
 
 ### Updating the Front-End
 
@@ -337,7 +337,7 @@ To delete all resources associated with the Live Chat Moderation system:
 
    ```
    cd backend/cdk
-   cdk destroy
+   cdk destroy --all
    ```
 
 ## Next Steps
@@ -347,8 +347,6 @@ To further enhance your Live Chat Moderation system:
 1. Customize AI Prompts: Modify the prompts in the `insert-prompt.bash <model-name>` scripts to fine-tune the moderation criteria for your specific use case.
 
 2. Implement User Authentication: Add user authentication to associate messages with verified user accounts.
-
-3. You can improve DDoS attack protection of the solution by using AWS Shield Advanced to enable advanced protection up to the application layer (Layer 7 on OSI network model). Check reference blog https://aws.amazon.com/blogs/security/protect-apis-with-amazon-api-gateway-and-perimeter-protection-services/
 
 ## Notices
 
