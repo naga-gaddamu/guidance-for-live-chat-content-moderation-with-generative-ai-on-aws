@@ -155,7 +155,7 @@ You should see four tables: ApprovedMessagesTable, UnapprovedMessagesTable, Hall
 4. Confirm the Lambda function deployment:
 
    ```
-   aws lambda get-function --function-name ChatModeration-MessageProcessorFunction
+   aws lambda get-function --function-name ChatModeration-MessageProcessor
    ```
 
 This should return details about the deployed function.
